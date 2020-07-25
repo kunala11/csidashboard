@@ -1,0 +1,1880 @@
+---
+title: "Comparative State Indices"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    theme: flatly
+runtime: shiny
+---
+
+
+
+```{r setup, include=FALSE}
+# load data in 'global' chunk so it can be shared by all users of the dashboard
+library(datasets)
+data(faithful)
+library(dygraphs)
+library(shiny)
+library(flexdashboard)
+library(shinydashboard)
+# load data in 'global' chunk so it can be shared by all users of the dashboard
+library(ggplot2)
+library(fmsb)
+library(mgcv)
+library(readxl)
+library(rpivotTable)
+library(DT)
+library(readr)
+library(sodium)
+library(shinyjs)
+
+## Indicator Data for dynamic part
+##Uploading Indicator DB
+##Category 1
+
+
+
+Master_DB_2018 <- read_excel("Master_DB.xlsx", sheet = "Master Code RY")
+Master_DB_2014 <- read_excel("Master_DB.xlsx", sheet = "Master Code BY")
+
+Additive_Aggregation_2014 <- read_excel("Additive Aggregation - BY.xlsx")
+Additive_Aggregation_2018 <- read_excel("Additive Aggregation - RY.xlsx")
+
+Master_DB_2014$code<- paste("T", Master_DB_2014$`Indicator Code`, sep = "")
+Master_DB_2018$code<- paste("T", Master_DB_2018$`Indicator Code`, sep = "")
+
+
+Master_DB<- rbind(Master_DB_2014, Master_DB_2018)
+
+
+X<- unique(Master_DB$Category)
+Master_DB_ed<- Master_DB[Master_DB$Category== X[1],]
+Master_DB_eco<- Master_DB[Master_DB$Category== X[2],]
+Master_DB_hl<- Master_DB[Master_DB$Category== X[3],]
+Master_DB_id<- Master_DB[Master_DB$Category== X[4],]
+Master_DB_lno<- Master_DB[Master_DB$Category== X[5],]
+Master_DB_bf<- Master_DB[Master_DB$Category== X[6],]
+Master_DB_es<- Master_DB[Master_DB$Category== X[7],]
+Master_DB_in<- Master_DB[Master_DB$Category== X[8],]
+Master_DB_env<- Master_DB[Master_DB$Category== X[9],]
+
+
+
+Master_Aggregation<- cbind(Additive_Aggregation_2014, Additive_Aggregation_2018)
+
+
+Master_Aggregation<- Master_Aggregation[,-c(225:228, 477:479)]
+rownames(Master_Aggregation)<- Master_Aggregation[,1]
+Master_Aggregation<- Master_Aggregation[,-1]
+
+Master_Aggregation_Raw<- Master_Aggregation
+
+
+Additive_Aggregation_2018<- Additive_Aggregation_2018[, -c(250:252)]
+Additive_Aggregation_2014<- Additive_Aggregation_2014[, -c(225:227)]
+
+Additive_Aggregation_2018<- as.data.frame(Additive_Aggregation_2018)
+Additive_Aggregation_2014<- as.data.frame(Additive_Aggregation_2014)
+
+
+
+rownames(Additive_Aggregation_2018)<- Additive_Aggregation_2018[,1]
+Additive_Aggregation_2018<- Additive_Aggregation_2018[,-1]
+
+rownames(Additive_Aggregation_2014)<- Additive_Aggregation_2014[,1]
+Additive_Aggregation_2014<- Additive_Aggregation_2014[,-1]
+
+
+Category<- c("Education", "Economy", "Health", "Inclusive Development", "Law & Order", "Business Friendliness", "Employment and Skill Development", "Infrastructure", "Environment and Sustainability")
+Category<- as.data.frame(Category)
+Category$code<- c("01", "02", "03", "04", "05", "06", "07", "08", "09")
+
+#Calling data function
+Final_Master_DB <- read_excel("Final Master_DB.xlsx", sheet = "Master Code RY")
+Indicator_code<- Final_Master_DB[,c(4,6)]
+colnames(Indicator_code)<- c("Indicator","Indicator_Code")
+Indicator_code<- as.data.frame(Indicator_code)
+Indicator_code$Indicator_Code<- substr(Indicator_code$Indicator_Code,1,5)
+
+Final_Master_DB <- read_excel("Final Master_DB.xlsx", sheet = "Master Code BY")
+Indicator_code_14<- Final_Master_DB[,c(4,6)]
+colnames(Indicator_code_14)<- c("Indicator","Indicator_Code")
+Indicator_code_14<- as.data.frame(Indicator_code_14)
+Indicator_code_14$Indicator_Code<- substr(Indicator_code_14$Indicator_Code,1,5)
+
+
+
+library(readxl)    
+
+## Indicator Data for dynamic part
+##Uploading Indicator DB
+read_excel_allsheets <- function(filename, tibble = FALSE) {
+  # I prefer straight data.frames
+  # but if you like tidyverse tibbles (the default with read_excel)
+  # then just pass tibble = TRUE
+  sheets <- readxl::excel_sheets(filename)
+  x <- lapply(sheets, function(X) readxl::read_excel(filename, sheet = X))
+  if(!tibble) x <- lapply(x, as.data.frame)
+  names(x) <- sheets
+  x
+}
+
+sheets <- readxl::excel_sheets("Final Category and Composite Rankings_V4.xlsx")
+List_DB<- read_excel_allsheets("Final Category and Composite Rankings_V4.xlsx", tibble = FALSE)
+
+
+List_DB<- setNames(List_DB, sheets)
+
+
+sheets <- readxl::excel_sheets("DB_Category01.xlsx")
+List1<- read_excel_allsheets("DB_Category01.xlsx", tibble = FALSE)
+
+List1<- setNames(List1, sheets)
+
+##Category 2
+sheets <- readxl::excel_sheets("DB_Category02.xlsx")
+List2<- read_excel_allsheets("DB_Category02.xlsx", tibble = FALSE)
+
+List2<- setNames(List2, sheets)
+
+
+##Category 3
+sheets <- readxl::excel_sheets("DB_Category03.xlsx")
+List3<- read_excel_allsheets("DB_Category03.xlsx", tibble = FALSE)
+
+List3<- setNames(List3, sheets)
+
+##Category 4
+sheets <- readxl::excel_sheets("DB_Category04.xlsx")
+List4<- read_excel_allsheets("DB_Category04.xlsx", tibble = FALSE)
+
+List4<- setNames(List4, sheets)
+
+##Category 5
+sheets <- readxl::excel_sheets("DB_Category05.xlsx")
+List5<- read_excel_allsheets("DB_Category05.xlsx", tibble = FALSE)
+
+List5<- setNames(List5, sheets)
+
+##Category 6
+sheets <- readxl::excel_sheets("DB_Category06.xlsx")
+List6<- read_excel_allsheets("DB_Category06.xlsx", tibble = FALSE)
+
+List6<- setNames(List6, sheets)
+
+
+##Category 7
+sheets <- readxl::excel_sheets("DB_Category07.xlsx")
+List7<- read_excel_allsheets("DB_Category07.xlsx", tibble = FALSE)
+
+List7<- setNames(List7, sheets)
+
+##Category 8
+sheets <- readxl::excel_sheets("DB_Category08.xlsx")
+List8<- read_excel_allsheets("DB_Category08.xlsx", tibble = FALSE)
+
+List8<- setNames(List8, sheets)
+
+##Category 9
+sheets <- readxl::excel_sheets("DB_Category09.xlsx")
+List9<- read_excel_allsheets("DB_Category09.xlsx", tibble = FALSE)
+
+List9<- setNames(List9, sheets)
+
+Category$List<- c("List1", "List2", "List3", "List4", "List5", "List6", "List7", "List8", "List9")
+List<- c(List1, List2, List3, List4, List5, List6, List7, List8, List9)
+
+
+
+Z_Score<- function(Year){
+
+  RY<- List_DB[[Year]]
+  
+  RY<- as.data.frame(RY)
+  
+  rownames(RY)<- RY[,1]
+  RY<- RY[,-1]
+  
+  RY_large<- matrix(0, nrow = 18, ncol = dim(RY)[2])
+  RY_small<- matrix(0, nrow = 13, ncol = dim(RY)[2])
+  RY_large<- as.data.frame(RY_large)
+  RY_small<- as.data.frame(RY_small)
+  
+  rownames(RY_large)<- rownames(RY)[10:27]
+  rownames(RY_small)<- rownames(RY)[30:42]
+  
+  colnames(RY_large)<- colnames(RY)
+  colnames(RY_small)<- colnames(RY)
+  
+  
+  for (i in 1:dim(RY)[2]) {
+    RY_large[,i]<- as.numeric(unlist(RY[c(10:27),i]))
+    RY_small[,i]<- as.numeric(unlist(RY[c(30:42),i]))
+  }
+  
+  RY_large_z<- as.data.frame(RY_large)
+  RY_small_z<- as.data.frame(RY_small)
+  
+  ## z-values  
+  
+  for (i in 1:dim(RY)[2]) {
+    if(RY[5,i]=="Positive"){
+      RY_large_z[,i]<- (RY_large[,i]-mean(RY_large[,i]))/sd(RY_large[,i])
+    }
+    if(RY[5,i]=="Positive"){
+      RY_small_z[,i]<- (RY_small[,i]-mean(RY_small[,i]))/sd(RY_small[,i])
+    }
+    if(RY[5,i]=="Negative"){
+      RY_large_z[,i]<- (mean(RY_large[,i])-RY_large[,i])/sd(RY_large[,i])
+    }
+    if(RY[5,i]=="Negative"){
+      RY_small_z[,i]<- (mean(RY_small[,i])-RY_small[,i])/sd(RY_small[,i])
+    }
+  }
+  
+  ## Clipping z-values
+  
+  RY_large_clip<- as.data.frame(RY_large_z)
+  RY_small_clip<- as.data.frame(RY_small_z)
+  
+  
+  for (i in 1:dim(RY)[2]) {
+    RY_small_clip[RY_small_clip>1.5]<-1.5
+    RY_small_clip[RY_small_clip<(-1.5)]<-(-1.5)
+    
+    RY_large_clip[RY_large_clip>1.5]<-1.5
+    RY_large_clip[RY_large_clip<(-1.5)]<-(-1.5)
+  }
+  
+  ##Scoring
+  
+  RY_large_Sc<- as.data.frame(RY_large_clip)
+  RY_small_Sc<- as.data.frame(RY_small_clip)
+  
+  RY_large_Sc<- 50+30*RY_large_clip
+  RY_small_Sc<- 50+30*RY_small_clip
+  RY_Sc<- rbind(RY_large_Sc, RY_small_Sc)
+  
+  RY_Sc
+}
+
+Z18<- Z_Score("2018")
+Z14<- Z_Score("2014")
+
+Rank_GM<- function(input, weigths){
+  Output<- matrix(0,nrow = dim(input)[1], ncol = 3)
+  Output<- as.data.frame(Output)
+  colnames(Output)<- c("State", "Score", "Rank")
+  Output$State<- rownames(input)
+
+  input2<- rbind(input, weigths)
+  #input2<- input2[, -i]
+  
+  for (i in 1:dim(input)[1]) {
+    X<- input2[dim(input2)[1],]
+    Y<- input2[i,]
+    inter<- 1
+    X<- as.numeric(X)
+    Y<- as.numeric(Y)
+    
+    for (j in 1:length(X)) {
+      if(Y[j]==0){Y[j]<-0.01}
+      inter<- inter*(Y[j])^(X[j])
+    }
+    inter2<- (inter)^(1/(sum(X)))
+    Output$Score[i]<- round(inter2,2)
+  } 
+  
+  Output$Rank<-rank(-Output$Score)
+  Output
+}
+
+Rank_GM_Cat<- function(input, Cat_code, weigths){
+  Output<- matrix(0,nrow = dim(input)[1], ncol = 3)
+  Output<- as.data.frame(Output)
+  colnames(Output)<- c("State", "Score", "Rank")
+  Output$State<- rownames(input)
+  input2<- rbind(input, weigths)
+  input2<- input2[,substr(colnames(input),1,2)== Cat_code]
+ 
+  #input2<- input2[, -i]
+  
+  for (i in 1:dim(input)[1]) {
+    X<- input2[dim(input2)[1],]
+    Y<- input2[i,]
+    inter<- 1
+    X<- as.numeric(X)
+    Y<- as.numeric(Y)
+    
+    for (j in 1:length(X)) {
+      if(Y[j]==0){Y[j]<-0.01}
+      inter<- inter*(Y[j])^(X[j])
+    }
+    inter2<- (inter)^(1/(sum(X)))
+    Output$Score[i]<- round(inter2,2)
+  } 
+  
+  Output$Rank<-rank(-Output$Score)
+  Output
+}
+
+Rank_GM_SubCat<- function(input, SubCat_code, weigths){
+  Output<- matrix(0,nrow = dim(input)[1], ncol = 3)
+  Output<- as.data.frame(Output)
+  colnames(Output)<- c("State", "Score", "Rank")
+  Output$State<- rownames(input)
+  input2<- rbind(input, weigths)
+  input2<- input2[,substr(colnames(input),1,3)== SubCat_code]
+ 
+  #input2<- input2[, -i]
+  
+  for (i in 1:dim(input)[1]) {
+    X<- input2[dim(input2)[1],]
+    Y<- input2[i,]
+    inter<- 1
+    X<- as.numeric(X)
+    Y<- as.numeric(Y)
+    
+    for (j in 1:length(X)) {
+      if(Y[j]==0){Y[j]<-0.01}
+      inter<- inter*(Y[j])^(X[j])
+    }
+    inter2<- (inter)^(1/(sum(X)))
+    Output$Score[i]<- round(inter2,2)
+  } 
+  
+  Output$Rank<-rank(-Output$Score)
+  Output
+}
+
+
+Rank_GM_Cat_io<- function(input, Cat_code, io, weigths, inp){
+  Output<- matrix(0,nrow = dim(input)[1], ncol = 3)
+  Output<- as.data.frame(Output)
+  colnames(Output)<- c("State", "Score", "Rank")
+  Output$State<- rownames(input)
+  input2<- rbind(input, inp, weigths)
+  input2<- input2[,substr(colnames(input),1,2)== Cat_code]
+  input2<- input2[,input2[(dim(input2)[1]-1),]==io]
+  
+  
+  #input2<- input2[, -i]
+  
+  for (i in 1:dim(input)[1]) {
+    X<- input2[dim(input2)[1],]
+    Y<- input2[i,]
+    inter<- 1
+    X<- as.numeric(X)
+    Y<- as.numeric(Y)
+    
+    for (j in 1:length(X)) {
+      if(Y[j]==0){Y[j]<-0.01}
+      inter<- inter*(Y[j])^(X[j])
+    }
+    inter2<- (inter)^(1/(sum(X)))
+    Output$Score[i]<- round(inter2,2)
+  } 
+  
+  Output$Rank<-rank(-Output$Score)
+  Output
+}
+
+Rank_GM_io<- function(input, io, weigths, inp){
+  Output<- matrix(0,nrow = dim(input)[1], ncol = 3)
+  Output<- as.data.frame(Output)
+  colnames(Output)<- c("State", "Score", "Rank")
+  Output$State<- rownames(input)
+
+  input2<- rbind(input, inp, weigths)
+  input2<- input2[,input2[(dim(input2)[1]-1),]==io]
+  
+  
+  #input2<- input2[, -i]
+  
+  for (i in 1:dim(input)[1]) {
+    X<- input2[dim(input2)[1],]
+    Y<- input2[i,]
+    inter<- 1
+    X<- as.numeric(X)
+    Y<- as.numeric(Y)
+    
+    for (j in 1:length(X)) {
+      if(Y[j]==0){Y[j]<-0.01}
+      inter<- inter*(Y[j])^(X[j])
+    }
+    inter2<- (inter)^(1/(sum(X)))
+    Output$Score[i]<- round(inter2,2)
+  } 
+  
+  Output$Rank<-rank(-Output$Score)
+  Output
+}
+
+## Dynamic Ranking: Composite Ranking
+Composite_Dynamic<- function(Year1, Year2){
+  static_year1<- Composite_Static(Year1)
+  static_year2<- Composite_Static(Year2)
+  Dynamic_Ranking<- static_year1
+  Dynamic_Ranking$Final_score<- round((static_year1$Final_score- static_year2$Final_score),2)
+  
+  Dynamic_Ranking$Final_Ranking<- static_year1$Final_Ranking- static_year2$Final_Ranking
+  
+  Dynamic_Ranking
+}
+
+## Static functions: Composite Category Ranking
+
+
+## Dynamic Ranking: Category Ranking
+Category_Dynamic<- function(Year1, Year2, Category){
+  static_year1<- Category_Static(Year1, Category)
+  static_year2<- Category_Static(Year2, Category)
+  Dynamic_Ranking<- static_year1
+  Dynamic_Ranking$Final_score<- round((static_year1$Final_score- static_year2$Final_score),2)
+  
+  Dynamic_Ranking$Final_Ranking<- static_year1$Final_Ranking- static_year2$Final_Ranking
+  
+  Dynamic_Ranking
+}
+
+
+## Static functions: Sub-Category Ranking
+
+Subcat <- read_excel("Master_DB.xlsx", sheet = "Sheet3")
+
+SubCat_Static<- function(input, Subcat1, weigths){
+  
+ Output<- matrix(0,nrow = dim(input)[1], ncol = 3)
+  Output<- as.data.frame(Output)
+  colnames(Output)<- c("State", "Score", "Rank")
+  Output$State<- rownames(input)
+  input2<- rbind(input, weigths)
+  input2<- input2[,substr(colnames(input),1,3)== Subcat$Code[Subcat$`Sub-Category`==Subcat1]]
+  
+  #input2<- input2[, -i]
+  
+  for (i in 1:dim(input)[1]) {
+    X<- input2[dim(input2)[1],]
+    Y<- input2[i,]
+    inter<- 1
+    X<- as.numeric(X)
+    Y<- as.numeric(Y)
+    
+    for (j in 1:length(X)) {
+      if(Y[j]==0){Y[j]<-0.01}
+      inter<- inter*(Y[j])^(X[j])
+    }
+    inter2<- (inter)^(1/(sum(X)))
+    Output$Score[i]<- round(inter2,2)
+  } 
+  
+  Output$Rank<-rank(-Output$Score)
+  Output
+}
+
+
+
+## Dynamic Ranking: Category Ranking
+SubCat_Dynamic<- function(Year1, Year2, Category){
+  static_year1<- SubCat_Static(Year1, Category)
+  static_year2<- SubCat_Static(Year2, Category)
+  Dynamic_Ranking<- static_year1
+  Dynamic_Ranking$Final_score<- round((static_year1$Final_score- static_year2$Final_score),2)
+  
+  Dynamic_Ranking$Final_Ranking<- static_year1$Final_Ranking- static_year2$Final_Ranking
+  
+  Dynamic_Ranking
+}
+
+
+## State Snapshot
+State_snapshot<- function(State, Year){
+  Output<- matrix(0, nrow = 10, ncol = 3)
+  Output<- as.data.frame(Output)
+  
+  colnames(Output)<- c("Name","Score", "Ranking")
+  Output$Name<- c("Composite", "Education", "Economy", "Health", "Inclusive Development", "Law & Order", "Business Friendliness", "Employment and Skill Development", "Infrastructure", "Environment and Sustainability")
+  
+  
+  if(Year=="2014"){
+      Z_Value<- Z14
+    } else {
+      Z_Value<- Z18
+    }
+  
+  Comp_L<- Rank_GM(Z_Value[1:18,], List_DB[[Year]][1, 2:(dim(Z_Value)[2]+1)])
+  Comp_S<- Rank_GM(Z_Value[19:31,], List_DB[[Year]][2, 2:(dim(Z_Value)[2]+1)])
+  Comp<- rbind(Comp_L, Comp_S)
+  
+  Output$Score[1]<- Comp$Score[Comp$State==State]
+  Output$Ranking[1]<- Comp$Rank[Comp$State==State]
+  
+  
+  for (i in 1:9) {
+    Cat_L<- Rank_GM_Cat(Z_Value[1:18,], Category$code[i], List_DB[[Year]][6, 2:(dim(Z_Value)[2]+1)])
+    Cat_S<- Rank_GM_Cat(Z_Value[19:31,], Category$code[i], List_DB[[Year]][7, 2:(dim(Z_Value)[2]+1)])
+    Cat<- rbind(Cat_L, Cat_S)
+
+    Output$Score[Output$Name== Category$Category[i]]<- Cat$Score[Cat$State==State]
+    Output$Ranking[Output$Name== Category$Category[i]]<- Cat$Rank[Cat$State==State]
+  }
+  Output
+}
+
+
+Composite_Rank<- function(State, Year){
+  Rank<- State_snapshot(State, Year)
+  Rank[1,2]
+}
+
+
+
+ 
+
+States_Indi<- function(Indicator, State){
+  Indi_code<- Indicator_code$Indicator_Code[Indicator_code$Indicator==Indicator]
+  #State<- as.data.frame(State)
+  Y<- Master_DB$`Indicator Code`[substr(Master_DB$`Indicator Code`,1,5)==Indi_code]
+  Output<- matrix(0, ncol = 3, nrow = length(State)*length(Y))
+  Output<- as.data.frame(Output)
+  
+  colnames(Output)<- c("Year", "Indicator", "State")
+  
+  
+  for (i in 1:length(State)) {  
+    
+    for (j in 1:length(Y)) {
+      Indi<- List[Y[j]]
+      Indi<- as.data.frame(Indi)
+      Output$Year[(i-1)*length(Y)+j]<- substr(Y[j],6,9)
+      Output$State[(i-1)*length(Y)+j]<- State[i]
+      
+      Output[(i-1)*length(Y)+j,2]<- Indi[Indi[,2]==State[i],3]
+    }
+  }
+  
+  Final<- as.data.frame(Output)
+  Final
+}
+
+States_Indi_table<- function(Indicator, State){
+  Indi_code<- Indicator_code$Indicator_Code[Indicator_code$Indicator==Indicator]
+  State<- as.data.frame(State)
+  Y<- Master_DB$`Indicator Code`[substr(Master_DB$`Indicator Code`,1,5)==Indi_code]
+  Output<- matrix(0, ncol = length(Y), nrow = dim(State)[1])
+  Output<- as.data.frame(Output)
+  
+  rownames(Output)<- State$State
+  colnames(Output)<- substr(Y,6,10)
+  
+  for (i in 1:length(Y)) {
+    Indi<- List[Y[i]]
+    Indi<- as.data.frame(Indi)
+    for (j in 1:dim(State)[1]) {
+      Output[j,i]<- Indi[Indi[,2]==State[j,],3]
+    }
+  }
+  
+  Output<- as.data.frame(Output)
+  Output
+}
+
+
+State_Info<- function(Indicator, State){
+  Indicator<- as.data.frame(Indicator)
+  for (i in 1:dim(Indicator)[1]) {
+    Indicator$code[i]<- Indicator_code$Indicator_Code[Indicator_code$Indicator==Indicator[i,1]]
+  }
+
+  Output<- matrix(0, nrow = dim(Indicator)[1]*2, ncol = 3)
+  colnames(Output)<- c("Year", "Data", "Indicator")
+  Output<- as.data.frame(Output)
+  
+  for (j in 1:dim(Indicator)[1]) {
+      Output$Year[2*j-1]<- "2014"
+      Output$Year[2*j]<- "2018"
+      
+      Output$Data[2*j-1]<- round(Z14[rownames(Z14)==State, substr(colnames(Z14),1,5)==Indicator[j,2]],2)     
+      Output$Data[2*j]<- round(Z18[rownames(Z18)==State, substr(colnames(Z18),1,5)==Indicator[j,2]],2)      
+      
+      Output$Indicator[2*j-1]<- as.character(Indicator[j,1])
+      Output$Indicator[2*j]<- as.character(Indicator[j,1])
+      
+      Output<- as.data.frame(Output)
+     
+
+  }
+  return(Output)
+}
+
+State_Info_table<- function(Indicator, State){
+  Indicator<- as.data.frame(Indicator)
+  for (i in 1:dim(Indicator)[1]) {
+    Indicator$code[i]<- Indicator_code$Indicator_Code[Indicator_code$Indicator==Indicator[i,1]]
+  }
+  
+  Output<- matrix(0, nrow = dim(Indicator)[1], ncol = 2)
+  colnames(Output)<- c("2014", "2018")
+  Output<- as.data.frame(Output)
+  rownames(Output)<- Indicator$Indicator
+  
+  for (j in 1:dim(Indicator)[1]) {
+    
+    
+    Output[j,1]<- round(Z14[rownames(Z14)==State, substr(colnames(Z14),1,5)==Indicator[j,2]],2)     
+    Output[j,2]<- round(Z18[rownames(Z18)==State, substr(colnames(Z18),1,5)==Indicator[j,2]],2)      
+    
+    Output<- as.data.frame(Output)
+    
+    
+  }
+  return(Output)
+}
+
+#Dynamic Index
+Dynamic_Index<- function(Year, Indicator1, size){
+  
+  Indicator1<- as.data.frame(Indicator1)
+  for (i in 1:dim(Indicator1)[1]) {
+    Indicator1$code[i]<- Indicator_code$Indicator_Code[Indicator_code$Indicator==Indicator1[i,1]]
+  }
+  if(Year=="2014"){
+    input<- Z14
+  } else {
+    input<- Z18
+  }
+  
+  if(size=="Large"){
+    input<- input[1:18,]
+    weigths<- List_DB[[Year]][6,2:(dim(input)[2]+1)]
+  } else {
+    input<- input[19:31,]
+    weigths<- List_DB[[Year]][7,2:(dim(input)[2]+1)]
+  }
+  colnames(input)<- substr(colnames(input),1,5)
+  input<- input[, c(Indicator1$code)]   
+  colnames(weigths)<- substr(colnames(weigths),1,5)
+  weigths<- weigths[, c(Indicator1$code)]
+  
+  Output<- matrix(0,nrow = dim(input)[1], ncol = 3)
+  Output<- as.data.frame(Output)
+  colnames(Output)<- c("State", "Score", "Rank")
+  Output$State<- rownames(input)
+
+  input2<- rbind(input, weigths)
+  
+  
+  #input2<- input2[, -i]
+  
+  for (i in 1:dim(input)[1]) {
+    X<- input2[dim(input2)[1],]
+    Y<- input2[i,]
+    inter<- 1
+    X<- as.numeric(X)
+    Y<- as.numeric(Y)
+    
+    for (j in 1:length(X)) {
+      if(Y[j]==0){Y[j]<-0.01}
+      inter<- inter*(Y[j])^(X[j])
+    }
+    inter2<- (inter)^(1/(sum(X)))
+    Output$Score[i]<- round(inter2,2)
+  } 
+  
+  Output$Rank<-rank(-Output$Score)
+  Output
+
+}
+
+
+## Indicator Data
+Category_indi<- function(Year, Category2){
+   
+  
+  if(Year=="2018"){
+    Additive_Aggregation_2018<- Additive_Aggregation_2018[,order(colnames(Additive_Aggregation_2018))]
+    X<- colnames(Additive_Aggregation_2018)
+    Y<- substr(X,1,2)
+    Y<- as.data.frame(Y)
+    Category_Aggregation<- Additive_Aggregation_2018[,Y$Y==Category$code[Category$Category==Category2]]
+   }
+  else if(Year=="2014"){
+      Additive_Aggregation_2014<- Additive_Aggregation_2014[,order(colnames(Additive_Aggregation_2014))]
+      X<- colnames(Additive_Aggregation_2014)
+      Y<- substr(X,1,2)
+      Y<- as.data.frame(Y)
+      Category_Aggregation<- Additive_Aggregation_2014[,Y$Y==Category$code[Category$Category==Category2]]
+  }
+  for (i in 1:dim(Category_Aggregation)[2]) {
+    colnames(Category_Aggregation)[i]<- Indicator_code$Indicator[Indicator_code$Indicator_Code==substr(colnames(Category_Aggregation)[i],1,5)]
+  }
+ 
+  Category_Aggregation<- Category_Aggregation[-c(1,2),]
+  Category_Aggregation<- round(Category_Aggregation,2)
+  return(Category_Aggregation)
+  
+}
+
+
+
+```
+
+Overall Governance Ranking 
+=========================================
+Column {.sidebar}
+-----------------------------------------
+
+### Composite Ranking
+
+```{r}
+
+
+radioButtons("Momentum", "Momentum", choices = c("Yes", "No"), 
+  inline = TRUE, selected= "No")
+
+selectInput("Year1", label = "Reference Year:",
+            choices = c("2014", "2018"), selected = "2018")
+
+conditionalPanel( condition = "input.Momentum=='Yes'",
+                    selectInput("Year2", label = "Base Year:",
+            choices = c("2014", "2018"), selected = "2014"))
+
+selectInput("IO", label = "Input/Output:",
+            choices = c("Composite", "I/O"), selected = "Composite")
+
+
+selectInput("State_Category", label = "State Category:",
+            choices = c("Large", "Small"), selected = "Large")
+
+
+```
+
+Column {.tabset}
+-----------------------------------------------------------------------
+
+### Overall Governance Performance of States
+
+```{r}
+my_data1<- reactive({
+  if (input$Momentum=="No"){
+    if(input$Year1=="2014"){
+      Z_data<- Z14
+    } else {
+      Z_data<- Z18
+    }
+    
+    if (input$State_Category=="Large"){
+      filter_data<- Z_data[1:18,]
+      weight<- List_DB[[input$Year1]][1,2:(dim(Z_data)[2]+1)]
+    } else {
+      filter_data<- Z_data[19:31,]
+      weight<- List_DB[[input$Year1]][2,2:(dim(Z_data)[2]+1)]
+    }
+    if (input$IO=="Composite"){
+      final_Rank<- Rank_GM(filter_data, weight)
+    } else {
+      inp<- List_DB[[input$Year1]][3,2:(dim(Z_data)[2]+1)]
+      final_Rank11<- Rank_GM(filter_data, weight)
+      final_Rank21<- Rank_GM_io(filter_data, "Input", weight, inp)
+      final_Rank31<- Rank_GM_io(filter_data, "Output", weight, inp)
+      final_Rank<- final_Rank11
+      final_Rank$Output_Score<- final_Rank31$Score
+      final_Rank$Output_Rank<- final_Rank31$Rank
+      final_Rank$Input_Score<- final_Rank21$Score
+      final_Rank$Input_Rank<- final_Rank21$Rank
+    }
+    
+    return(final_Rank)
+  }
+  else {
+    if(input$Year1=="2014"){
+      Z_data1<- Z14
+    } else {
+      Z_data1<- Z18
+    }
+    if(input$Year2=="2014"){
+      Z_data2<- Z14
+    } else {
+      Z_data2<- Z18
+    }
+    
+    if (input$State_Category=="Large"){
+      filter_data1<- Z_data1[1:18,]
+      weight1<- List_DB[[input$Year1]][1,2:(dim(Z_data1)[2]+1)]
+      filter_data2<- Z_data2[1:18,]
+      weight2<- List_DB[[input$Year2]][1,2:(dim(Z_data2)[2]+1)]
+    } else {
+      filter_data1<- Z_data1[19:31,]
+      weight1<- List_DB[[input$Year1]][2,2:(dim(Z_data1)[2]+1)]
+      filter_data2<- Z_data2[19:31,]
+      weight2<- List_DB[[input$Year2]][2,2:(dim(Z_data2)[2]+1)]
+    }
+    if (input$IO=="Composite"){
+      final_Rank1<- Rank_GM(filter_data1, weight1)
+      final_Rank2<- Rank_GM(filter_data2, weight2)
+      
+      final_Rank<- final_Rank1
+      final_Rank$Score<- round((final_Rank1$Score-final_Rank2$Score),2)
+      final_Rank$Rank<- final_Rank2$Rank-final_Rank1$Rank
+      
+    } else {
+      inp1<- List_DB[[input$Year1]][3,2:(dim(Z_data1)[2]+1)]
+      final_Rank11<- Rank_GM(filter_data1, weight1)
+      final_Rank21<- Rank_GM_io(filter_data1, "Input", weight1, inp1)
+      final_Rank31<- Rank_GM_io(filter_data1, "Output", weight1, inp1)
+      final_Rank1<- final_Rank11
+      
+      final_Rank1$Output_Score<- final_Rank31$Score
+      final_Rank1$Output_Rank<- final_Rank31$Rank
+      final_Rank1$Input_Score<- final_Rank21$Score
+      final_Rank1$Input_Rank<- final_Rank21$Rank
+      
+      inp2<- List_DB[[input$Year2]][3,2:(dim(Z_data2)[2]+1)]
+      final_Rank11<- Rank_GM(filter_data2, weight2)
+      final_Rank21<- Rank_GM_io(filter_data2, "Input", weight2, inp2)
+      final_Rank31<- Rank_GM_io(filter_data2, "Output", weight2, inp2)
+      final_Rank2<- final_Rank11
+      
+      final_Rank2$Output_Score<- final_Rank31$Score
+      final_Rank2$Output_Rank<- final_Rank31$Rank
+      final_Rank2$Input_Score<- final_Rank21$Score
+      final_Rank2$Input_Rank<- final_Rank21$Rank
+      
+      final_Rank<- final_Rank1
+    
+      final_Rank$Output_Score<- round((final_Rank1$Output_Score-final_Rank2$Output_Score),2)
+      final_Rank$Input_Score<- round((final_Rank1$Input_Score-final_Rank2$Input_Score),2)
+      final_Rank$Output_Rank<- final_Rank2$Output_Rank-final_Rank1$Output_Rank
+      final_Rank$Input_Rank<- final_Rank2$Input_Rank-final_Rank1$Input_Rank
+    }
+    return(final_Rank)
+  }
+
+  })
+
+comp<-reactive({input$IO})
+
+ renderPlot({
+   if(comp()=="Composite"){
+      p<- ggplot(my_data1(), aes(x = reorder(State, Score), y = Score, fill=Score)) + geom_bar(stat = "identity", width = .75,  show.legend = TRUE, position = position_dodge(),  fun.y = "mean")+ geom_col()+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size=15))+ geom_abline(intercept = mean(my_data1()[,2]), slope = 0)+geom_text(aes(label= Score), vjust= 4, color ="white")
+  print(p)
+   } else{
+     p<- ggplot(my_data1(), aes(x = Input_Rank, y = Output_Rank, label= State)) +
+    geom_point(data=my_data1(), mapping= aes(x = Input_Rank, y = Output_Rank, size = Score, label= State), alpha= 0.5) + 
+    geom_text(my_data1(),mapping= aes(x = Input_Rank, y = Output_Rank, label= State), vjust= 4, color ="black") +
+    scale_size(range = c(.5,15)) + geom_abline(intercept = 0, slope = 1)+
+    theme_gray()
+     print(p)
+   }
+   
+}) 
+
+```
+
+
+### Table: Overall Governance Performance of States
+```{r}
+
+
+renderDataTable({
+  datatable(my_data1(), extensions = 'Buttons', options = list(
+    dom = 'Blfrtip',
+    buttons = c('csv', 'excel', 'pdf', 'print'),
+    lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All")),
+    options = list(pageLength = 25)
+    ))
+})
+```
+
+
+Category Ranking
+=========================================
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+radioButtons("Momentum1", "Momentum", choices = c("Yes", "No"), 
+  inline = TRUE, width = NULL, choiceNames = NULL, selected= "No")
+
+selectInput("Year3", label = 'Reference Year:',
+            choices = c("2014", "2018"), selected = "2018")
+
+conditionalPanel( condition = "input.Momentum1=='Yes'",
+                    selectInput("Year4", label = "Base Year:",
+            choices = c("2014", "2018"), selected = "2014"))
+
+selectInput("Category", label = "Category:",
+            choices = c("Education"="01", "Economy"="02", "Health"="03", "Inclusive Development"="04", "Law & Order"="05", "Business Friendliness"="06", "Employment and Skill Development"="07", "Infrastructure"="08", "Environment and Sustainability"="09"), selected = "Education")
+
+selectInput("IO1", label = "Input/Output:",
+            choices = c("Composite", "IO"), selected = "Composite")
+
+
+selectInput("State_Category1", label = "State Category:",
+            choices = c("Large", "Small"), selected = "Large")
+
+
+```
+
+
+Column {.tabset}
+-----------------------------------------------------------------------
+
+### Category_wise Performance of States
+
+```{r}
+
+my_data2<- reactive({
+  if (input$Momentum1=="No"){
+    if(input$Year3=="2014"){
+      Z_data<- Z14
+    } else {
+      Z_data<- Z18
+    }
+   
+    if (input$State_Category1=="Large"){
+      filter_data<- Z_data[1:18,]
+      weight<- List_DB[[input$Year3]][6,2:(dim(Z_data)[2]+1)]
+    } else {
+      filter_data<- Z_data[19:31,]
+      weight<- List_DB[[input$Year3]][7,2:(dim(Z_data)[2]+1)]
+    }
+    if (input$IO1=="Composite"){
+      final_Rank<- Rank_GM_Cat(filter_data, input$Category, weight)
+    } else {
+      inp<- List_DB[[input$Year3]][3,2:(dim(Z_data)[2]+1)]
+      final_Rank11<- Rank_GM_Cat(filter_data, input$Category, weight)
+      final_Rank21<- Rank_GM_Cat_io(filter_data, input$Category, "Input", weight, inp)
+      final_Rank31<- Rank_GM_Cat_io(filter_data, input$Category, "Output", weight, inp)
+      final_Rank<- final_Rank11
+      final_Rank$Output_Score<- final_Rank31$Score
+      final_Rank$Output_Rank<- final_Rank31$Rank
+      final_Rank$Input_Score<- final_Rank21$Score
+      final_Rank$Input_Rank<- final_Rank21$Rank
+    }
+    return(final_Rank)
+  }
+  else if (input$Momentum1=="Yes"){
+    
+    if(input$Year3=="2014"){
+      Z_data1<- Z14
+    } else {
+      Z_data1<- Z18
+    }
+    if(input$Year4=="2014"){
+      Z_data2<- Z14
+    } else {
+      Z_data2<- Z18
+    }
+    
+    if (input$State_Category1=="Large"){
+      filter_data1<- Z_data1[1:18,]
+      weight1<- List_DB[[input$Year3]][6,2:(dim(Z_data1)[2]+1)]
+      filter_data2<- Z_data2[1:18,]
+      weight2<- List_DB[[input$Year4]][6,2:(dim(Z_data2)[2]+1)]
+    } else {
+      filter_data1<- Z_data1[19:31,]
+      weight1<- List_DB[[input$Year3]][7,2:(dim(Z_data1)[2]+1)]
+      filter_data2<- Z_data2[19:31,]
+      weight2<- List_DB[[input$Year4]][7,2:(dim(Z_data2)[2]+1)]
+    }
+  
+    
+    if (input$IO1=="Composite"){
+      final_Rank1<- Rank_GM_Cat(filter_data1, input$Category, weight1)
+      final_Rank2<- Rank_GM_Cat(filter_data2, input$Category, weight2)
+      
+      final_Rank<- final_Rank1
+      final_Rank$Score<- round((final_Rank1$Score-final_Rank2$Score),2)
+      final_Rank$Rank<- final_Rank2$Rank-final_Rank1$Rank
+      
+    } else {
+      inp1<- List_DB[[input$Year3]][3,2:(dim(Z_data1)[2]+1)]
+      final_Rank11<- Rank_GM_Cat(filter_data1, input$Category, weight1)
+      final_Rank21<- Rank_GM_Cat_io(filter_data1, input$Category, "Input", weight1, inp1)
+      final_Rank31<- Rank_GM_Cat_io(filter_data1, input$Category, "Output", weight1, inp1)
+      
+      final_Rank41<- final_Rank11
+      
+      final_Rank41$Output_Score<- final_Rank31$Score
+      final_Rank41$Output_Rank<- final_Rank31$Rank
+      final_Rank41$Input_Score<- final_Rank21$Score
+      final_Rank41$Input_Rank<- final_Rank21$Rank
+      
+      inp2<- List_DB[[input$Year4]][3,2:(dim(Z_data2)[2]+1)]
+      final_Rank11<- Rank_GM_Cat(filter_data2, input$Category, weight2)
+      final_Rank21<- Rank_GM_Cat_io(filter_data2, input$Category, "Input", weight2, inp2)
+      final_Rank31<- Rank_GM_Cat_io(filter_data2, input$Category, "Output", weight2, inp2)
+      
+      final_Rank42<- final_Rank11
+      
+      final_Rank42$Output_Score<- final_Rank31$Score
+      final_Rank42$Output_Rank<- final_Rank31$Rank
+      final_Rank42$Input_Score<- final_Rank21$Score
+      final_Rank42$Input_Rank<- final_Rank21$Rank
+      
+      final_Rank<- final_Rank41
+      
+      final_Rank$Output_Score<- round((final_Rank41$Output_Score-final_Rank42$Output_Score),2)
+      final_Rank$Input_Score<- round((final_Rank41$Input_Score-final_Rank42$Input_Score),2)
+      final_Rank$Output_Rank<- final_Rank42$Output_Rank-final_Rank41$Output_Rank
+      final_Rank$Input_Rank<- final_Rank42$Input_Rank-final_Rank41$Input_Rank
+    }
+    return(final_Rank)
+  }
+  })
+
+
+ renderPlot({
+   
+   comp<-reactive({input$IO1})
+   
+   if(comp()=="Composite"){
+      p<- ggplot(my_data2(), aes(x = reorder(State, Score), y = Score, fill=Score)) + geom_bar(stat = "identity", width = .75,  show.legend = TRUE, position = position_dodge(),  fun.y = "mean")+ geom_col()+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size=15))+ geom_abline(intercept = mean(my_data2()[,2]), slope = 0)+labs(title="Category Wise Ranking of States",
+        x ="State", y = "Category Scores")+geom_text(aes(label= Score), vjust= 4, color ="white")
+  print(p)
+   } else{
+     p<- ggplot(my_data2(), aes(x = Input_Rank, y = Output_Rank, label= State)) +
+    geom_point(data=my_data2(), mapping= aes(x = Input_Rank, y = Output_Rank, size = Score, label= State), alpha= 0.5) + 
+    geom_text(my_data2(),mapping= aes(x = Input_Rank, y = Output_Rank, label= State), vjust= 4, color ="black") +
+    scale_size(range = c(.5,15)) + geom_abline(intercept = 0, slope = 1)+
+    theme_gray()
+     print(p)
+   }
+   
+}) 
+
+```
+
+### Table: Category_Wise Performance of States
+
+```{r}
+
+
+renderDataTable({
+  
+    datatable(my_data2(), extensions = 'Buttons', options = list(
+    dom = 'Blfrtip',
+    buttons = c('csv', 'excel', 'pdf', 'print'),
+    lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All")),
+    options = list(pageLength = 25)
+    ))
+  
+  
+})
+```
+
+
+
+
+Sub-category Ranking
+=========================================
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+radioButtons("Momentum2", "Momentum", choices = c("Yes", "No"), 
+             inline = TRUE, width = NULL, choiceNames = NULL, selected= "No")
+
+selectInput("Year5", label = 'Reference Year:',
+            choices = c("2014", "2018"), selected = "2018")
+
+conditionalPanel( condition = "input.Momentum2=='Yes'",
+                  selectInput("Year6", label = "Base Year:",
+                              choices = c("2014", "2018"), selected = "2014"))
+
+selectInput("Category1", label = "Category:",
+            choices = c("Education", "Economy", "Health", "Inclusive Development", "Law & Order", "Business Friendliness", "Employment and Skill Development", "Infrastructure", "Environment and Sustainability"), selected = "Composite")
+
+Subcat$Category_code<- substr(Subcat$Code,1,2)
+
+conditionalPanel( condition = "input.Category1=='Education'",
+                  selectInput("Sub_Cat1", label = "Sub-Category:",
+                              choices = Subcat$`Sub-Category`[Subcat$Category_code=="01"], selected = NULL))
+
+conditionalPanel( condition = "input.Category1=='Economy'",
+                  selectInput("Sub_Cat2", label = "Sub-Category:",
+                              choices = Subcat$`Sub-Category`[Subcat$Category_code=="02"], selected = NULL))
+
+conditionalPanel( condition = "input.Category1=='Health'",
+                  selectInput("Sub_Cat3", label = "Sub-Category:",
+                              choices = Subcat$`Sub-Category`[Subcat$Category_code=="03"], selected = NULL))
+
+conditionalPanel( condition = "input.Category1=='Inclusive Development'",
+                  selectInput("Sub_Cat4", label = "Sub-Category:",
+                              choices = Subcat$`Sub-Category`[Subcat$Category_code=="04"], selected = NULL))
+
+conditionalPanel( condition = "input.Category1=='Law & Order'",
+                  selectInput("Sub_Cat5", label = "Sub-Category:",
+                              choices = Subcat$`Sub-Category`[Subcat$Category_code=="05"], selected = NULL))
+
+conditionalPanel( condition = "input.Category1=='Business Friendliness'",
+                  selectInput("Sub_Cat6", label = "Sub-Category:",
+                              choices = Subcat$`Sub-Category`[Subcat$Category_code=="06"], selected = NULL))
+
+conditionalPanel( condition = "input.Category1=='Employment and Skill Development'",
+                  selectInput("Sub_Cat7", label = "Sub-Category:",
+                              choices = Subcat$`Sub-Category`[Subcat$Category_code=="07"], selected = NULL))
+
+conditionalPanel( condition = "input.Category1=='Infrastructure'",
+                  selectInput("Sub_Cat8", label = "Sub-Category:",
+                              choices = Subcat$`Sub-Category`[Subcat$Category_code=="08"], selected = NULL))
+
+conditionalPanel( condition = "input.Category1=='Environment and Sustainability'",
+                  selectInput("Sub_Cat9", label = "Sub-Category:",
+                              choices = Subcat$`Sub-Category`[Subcat$Category_code=="09"], selected = NULL))
+
+
+selectInput("State_Category2", label = "State Category:",
+            choices = c("Large", "Small"), selected = "Large")
+
+
+```
+
+
+Column {.tabset}
+-----------------------------------------------------------------------
+  
+### Sub-Category_wise Performance of States
+  
+```{r}
+
+
+my_data3<- reactive({
+  if (input$Momentum2=="No"){
+    if(input$Year5=="2014"){
+      Z_data<- Z14
+    } else {
+      Z_data<- Z18
+    }
+   
+    if (input$State_Category2=="Large"){
+      filter_data<- Z_data[1:18,]
+      weight<- List_DB[[input$Year5]][6,2:(dim(Z_data)[2]+1)]
+    } else {
+      filter_data<- Z_data[19:31,]
+      weight<- List_DB[[input$Year5]][7,2:(dim(Z_data)[2]+1)]
+    }
+  
+  if(input$Category1=="Education") {final_Rank<- SubCat_Static(filter_data, input$Sub_Cat1, weight)}
+  if(input$Category1=="Economy") {final_Rank<- SubCat_Static(filter_data, input$Sub_Cat2, weight)}  
+  if(input$Category1=="Health") {final_Rank<- SubCat_Static(filter_data, input$Sub_Cat3, weight)}  
+  if(input$Category1=="Inclusive Development") {final_Rank<- SubCat_Static(filter_data, input$Sub_Cat4, weight)}
+  if(input$Category1=="Law & Order") {final_Rank<- SubCat_Static(filter_data, input$Sub_Cat5, weight)}  
+  if(input$Category1=="Business Friendliness") {final_Rank<- SubCat_Static(filter_data, input$Sub_Cat6, weight)}  
+  if(input$Category1=="Employment and Skill Development") {final_Rank<- SubCat_Static(filter_data, input$Sub_Cat7, weight)}
+  if(input$Category1=="Infrastructure") {final_Rank<- SubCat_Static(filter_data, input$Sub_Cat8, weight)}  
+  if(input$Category1=="Environment and Sustainability") {final_Rank<- SubCat_Static(filter_data, input$Sub_Cat9, weight)}  
+ 
+    
+    return(final_Rank)
+  }
+  else if (input$Momentum2=="Yes"){
+    
+    if(input$Year5=="2014"){
+      Z_data1<- Z14
+    } else {
+      Z_data1<- Z18
+    }
+    if(input$Year6=="2014"){
+      Z_data2<- Z14
+    } else {
+      Z_data2<- Z18
+    }
+    
+    if (input$State_Category2=="Large"){
+      filter_data1<- Z_data1[1:18,]
+      weight1<- List_DB[[input$Year5]][6,2:(dim(Z_data1)[2]+1)]
+      filter_data2<- Z_data2[1:18,]
+      weight2<- List_DB[[input$Year6]][6,2:(dim(Z_data2)[2]+1)]
+    } else {
+      filter_data1<- Z_data1[19:31,]
+      weight1<- List_DB[[input$Year5]][7,2:(dim(Z_data1)[2]+1)]
+      filter_data2<- Z_data2[19:31,]
+      weight2<- List_DB[[input$Year6]][7,2:(dim(Z_data2)[2]+1)]
+    }
+  if(input$Category1=="Education") {final_Rank1<- SubCat_Static(filter_data1, input$Sub_Cat1, weight1)}
+  if(input$Category1=="Economy") {final_Rank1<- SubCat_Static(filter_data1, input$Sub_Cat2, weight1)}  
+  if(input$Category1=="Health") {final_Rank1<- SubCat_Static(filter_data1, input$Sub_Cat3, weight1)}  
+  if(input$Category1=="Inclusive Development") {final_Rank1<- SubCat_Static(filter_data1, input$Sub_Cat4, weight1)}
+  if(input$Category1=="Law & Order") {final_Rank1<- SubCat_Static(filter_data1, input$Sub_Cat5, weight1)}  
+  if(input$Category1=="Business Friendliness") {final_Rank1<- SubCat_Static(filter_data1, input$Sub_Cat6, weight1)}  
+  if(input$Category1=="Employment and Skill Development") {final_Rank1<- SubCat_Static(filter_data1, input$Sub_Cat7, weight1)}
+  if(input$Category1=="Infrastructure") {final_Rank1<- SubCat_Static(filter_data1, input$Sub_Cat8, weight1)}  
+  if(input$Category1=="Environment and Sustainability") {final_Rank1<- SubCat_Static(filter_data1, input$Sub_Cat9, weight1)}  
+ 
+    if(input$Category1=="Education") {final_Rank2<- SubCat_Static(filter_data2, input$Sub_Cat1, weight2)}
+  if(input$Category1=="Economy") {final_Rank2<- SubCat_Static(filter_data2, input$Sub_Cat2, weight2)}  
+  if(input$Category1=="Health") {final_Rank2<- SubCat_Static(filter_data2, input$Sub_Cat3, weight2)}  
+  if(input$Category1=="Inclusive Development") {final_Rank2<- SubCat_Static(filter_data2, input$Sub_Cat4, weight2)}
+  if(input$Category1=="Law & Order") {final_Rank2<- SubCat_Static(filter_data2, input$Sub_Cat5, weight2)}  
+  if(input$Category1=="Business Friendliness") {final_Rank2<- SubCat_Static(filter_data2, input$Sub_Cat6, weight2)}  
+  if(input$Category1=="Employment and Skill Development") {final_Rank2<- SubCat_Static(filter_data2, input$Sub_Cat7, weight2)}
+  if(input$Category1=="Infrastructure") {final_Rank2<- SubCat_Static(filter_data2, input$Sub_Cat8, weight2)}  
+  if(input$Category1=="Environment and Sustainability") {final_Rank2<- SubCat_Static(filter_data2, input$Sub_Cat9, weight2)}  
+ 
+
+    final_Rank<- final_Rank1
+    final_Rank$Score<- round((final_Rank1$Score-final_Rank2$Score),2)
+    final_Rank$Rank<- final_Rank2$Rank-final_Rank1$Rank
+      
+    return(final_Rank)
+  }
+
+})
+
+size2<-reactive({input$State_Category2})
+
+
+renderPlot({
+    p<- ggplot(my_data3(), aes(x = reorder(State, Score), y = Score, fill=Score)) + geom_bar(stat = "identity", width = .75,  show.legend = TRUE, position = position_dodge(),  fun.y = "mean")+ geom_col()+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size=15))+ geom_abline(intercept = mean(my_data3()[,2]), slope = 0) +labs(title="Sub-Category Wise Ranking of States",
+        x ="State", y = "Sub-Category Scores")+ geom_text(aes(label= Score), vjust= 4, color ="white")
+    print(p)
+}) 
+
+```
+
+### Sub-Category_Wise Performance of States
+
+```{r}
+
+
+renderDataTable({
+ 
+    datatable(my_data3(), extensions = 'Buttons', options = list(
+    dom = 'Blfrtip',
+    buttons = c('csv', 'excel', 'pdf', 'print'),
+    lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All")),
+    options = list(pageLength = 25)
+    ))
+
+  
+})
+```
+
+
+
+State-Snapshot 
+===================================== 
+
+Column {.sidebar}
+-------------------------------------
+
+```{r}
+selectInput("Year20", label = "Year:",
+            choices = c("2014", "2018"), selected = 2018)
+selectInput("State20", label = "State:",
+            choices = rownames(Additive_Aggregation_2018)[3:33], selected = "Delhi")
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Overall Rank
+
+```{r}
+
+Snap<- reactive({State_snapshot(input$State20, input$Year20)})
+#renderGauge(div_id="Rank",gauge_name="State Rank", rate=99)
+renderGauge({gauge(Snap()[1,3], min = 0, max = 22, symbol = '', gaugeSectors(
+  success = c(0, 8), warning = c(9, 16), danger = c(17,24)
+))})
+```
+
+### Overall Governance Score
+
+```{r}
+renderGauge({gauge(Snap()[1,2], min = 0, max = 100, symbol = '', gaugeSectors(
+  success = c(50,60), warning = c(40,50), danger = c(30,40)
+))})
+```
+
+
+### Median Ranking across Categories 
+
+```{r}
+
+renderGauge({gauge(median(Snap()[,3]), min = 0, max = 22, symbol = '',  gaugeSectors(
+  success = c(0, 8), warning = c(9, 16), danger = c(17,24)))
+})
+
+```
+
+
+Row {.tabset}
+-------------------------------------
+
+### Governance Ranking 
+
+```{r}
+
+
+renderPlot({
+     p<- ggplot(Snap(), aes(x = Name, y= Ranking)) +
+  geom_bar(width = 1, colour = "blue", stat="identity") +
+ coord_polar()+theme(text = element_text(size=15))+geom_col()
+                labs(title="State Snapshot")+ geom_text(aes(label= Ranking), vjust= 3, color ="white")
+print(p)
+})
+
+```
+
+### Table: Governance Ranking and Score   
+
+```{r}
+renderDataTable({
+  datatable(Snap(),
+    options = list(pageLength = 10)
+)})
+```
+
+
+Dynamic Indexing 
+===================================== 
+### Dynamic Governance Index
+Column {.sidebar}
+-----------------------------------------
+
+```{r}
+
+selectInput("Year7", label = 'Reference Year:',
+            choices = c("2014","2018"), selected = "2018")
+
+
+selectInput("Category2", label = "Category:",
+            choices = c("Education", "Economy", "Health", "Inclusive Development", "Law & Order", "Business Friendliness", "Employment and Skill Development", "Infrastructure", "Environment and Sustainability"), selected = "Education")
+
+Indicator_code$Category_code<- substr(Indicator_code$Indicator_Code,1,2)
+Indicator_code_14$Category_code<- substr(Indicator_code_14$Indicator_Code,1,2)
+
+conditionalPanel(condition = "input.Category2=='Education'&&input.Year7==2018",
+                  checkboxGroupInput("Indicator1", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="01"], selected = Indicator_code$Indicator[Indicator_code$Category_code=="01"]))
+
+conditionalPanel(condition = "input.Category2=='Education'&&input.Year7==2014",
+                  checkboxGroupInput("Indicator11", label = "Indicator:",
+                              choices = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="01"], selected = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="01"]))
+
+
+conditionalPanel( condition = "input.Category2=='Economy'&&input.Year7==2019",
+                  checkboxGroupInput("Indicator22", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="02"], selected = Indicator_code$Indicator[Indicator_code$Category_code=="02"]))
+
+conditionalPanel( condition = "input.Category2=='Economy'&&input.Year7==2015",
+                  checkboxGroupInput("Indicator21", label = "Indicator:",
+                              choices = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="02"], selected = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="02"]))
+
+conditionalPanel( condition = "input.Category2=='Health'&&input.Year7==2018",
+                  checkboxGroupInput("Indicator3", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="03"], selected = Indicator_code$Indicator[Indicator_code$Category_code=="03"]))
+
+conditionalPanel( condition = "input.Category2=='Health'&&input.Year7==2014",
+                  checkboxGroupInput("Indicator31", label = "Indicator:",
+                              choices = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="03"], selected = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="03"]))
+
+
+conditionalPanel( condition = "input.Category2=='Inclusive Development'&&input.Year7==2018",
+                  checkboxGroupInput("Indicator4", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="04"], selected = Indicator_code$Indicator[Indicator_code$Category_code=="04"]))
+
+conditionalPanel( condition = "input.Category2=='Inclusive Development'&&input.Year7==2014",
+                  checkboxGroupInput("Indicator41", label = "Indicator:",
+                              choices = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="04"], selected = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="04"]))
+
+
+conditionalPanel( condition = "input.Category2=='Law & Order'&&input.Year7==2018",
+                  checkboxGroupInput("Indicator5", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="05"], selected = Indicator_code$Indicator[Indicator_code$Category_code=="05"]))
+
+conditionalPanel( condition = "input.Category2=='Law & Order'&&input.Year7==2014",
+                  checkboxGroupInput("Indicator51", label = "Indicator:",
+                              choices = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="05"], selected = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="05"]))
+
+
+conditionalPanel( condition = "input.Category2=='Business Friendliness'&&input.Year7==2018",
+                  checkboxGroupInput("Indicator6", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="06"], selected = Indicator_code$Indicator[Indicator_code$Category_code=="06"]))
+
+conditionalPanel( condition = "input.Category2=='Business Friendliness'&&input.Year7==2014",
+                  checkboxGroupInput("Indicator61", label = "Indicator:",
+                              choices = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="06"], selected = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="06"]))
+
+
+conditionalPanel( condition = "input.Category2=='Employment and Skill Development'&&input.Year7==2018",
+                  checkboxGroupInput("Indicator7", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="07"], selected = Indicator_code$Indicator[Indicator_code$Category_code=="07"]))
+
+conditionalPanel( condition = "input.Category2=='Employment and Skill Development'&&input.Year7==2014",
+                  checkboxGroupInput("Indicator71", label = "Indicator:",
+                              choices = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="07"], selected = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="07"]))
+
+
+conditionalPanel( condition = "input.Category2=='Infrastructure'&&input.Year7==2018",
+                  checkboxGroupInput("Indicator8", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="08"], selected = Indicator_code$Indicator[Indicator_code$Category_code=="08"]))
+
+conditionalPanel( condition = "input.Category2=='Infrastructure'&&input.Year7==2014",
+                  checkboxGroupInput("Indicator81", label = "Indicator:",
+                              choices = Indicator_code_14$Indicator[Indicator_code$Category_code=="08"], selected = Indicator_code_14$Indicator[Indicator_code$Category_code=="08"]))
+
+
+conditionalPanel( condition = "input.Category2=='Environment and Sustainability'&&input.Year7==2018",
+                  checkboxGroupInput("Indicator9", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="09"], selected = Indicator_code$Indicator[Indicator_code$Category_code=="09"]))
+
+conditionalPanel( condition = "input.Category2=='Environment and Sustainability'&&input.Year7==2014",
+                  checkboxGroupInput("Indicator91", label = "Indicator:",
+                              choices = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="09"], selected = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="09"]))
+
+
+selectInput("State_Category3", label = "State Category:",
+            choices = c("Large", "Small"), selected = "Large")
+
+```
+
+Column {.tabset}
+-----------------------------------------------------------------------
+
+### Dynamic Index
+```{r}
+
+my_data5<- reactive({
+  if (input$Category2=="Education"&&input$Year7=="2018") {
+    Dynamic_Index(input$Year7, input$Indicator1, input$State_Category3)
+    }
+  else if (input$Category2=="Education"&&input$Year7=="2014") {
+    Dynamic_Index(input$Year7, input$Indicator11, input$State_Category3)
+    }
+  else if (input$Category2=="Economy"&&input$Year7=="2019") {
+    Dynamic_Index(input$Year7, input$Indicator22, input$State_Category3)
+  }
+  else if (input$Category2=="Economy"&&input$Year7=="2015") {
+    Dynamic_Index(input$Year7, input$Indicator21, input$State_Category3)
+    }
+  else if (input$Category2=="Health"&&input$Year7=="2018") {
+    Dynamic_Index(input$Year7, input$Indicator3, input$State_Category3)
+  }
+  else if (input$Category2=="Health"&&input$Year7=="2014") {
+    Dynamic_Index(input$Year7, input$Indicator31, input$State_Category3)
+    }
+  else if (input$Category2=="Inclusive Development"&&input$Year7=="2018"){
+    Dynamic_Index(input$Year7, input$Indicator4, input$State_Category3)
+  }
+  else if (input$Category2=="Inclusive Development"&&input$Year7=="2014") {
+    Dynamic_Index(input$Year7, input$Indicator41, input$State_Category3)
+    }
+  else if (input$Category2=="Law & Order"&&input$Year7=="2018") {
+    Dynamic_Index(input$Year7, input$Indicator5, input$State_Category3)
+  }
+  else if (input$Category2=="Law & Order"&&input$Year7=="2014") {
+    Dynamic_Index(input$Year7, input$Indicator51, input$State_Category3)
+    }
+  else if (input$Category2=="Business Friendliness"&&input$Year7=="2018"){
+    Dynamic_Index(input$Year7, input$Indicator6, input$State_Category3)
+  }
+  else if (input$Category2=="Business Friendliness"&&input$Year7=="2014") {
+    Dynamic_Index(input$Year7, input$Indicator61, input$State_Category3)
+    }
+  else if (input$Category2=="Employment and Skill Development"&&input$Year7=="2018"){
+    Dynamic_Index(input$Year7, input$Indicator7, input$State_Category3)
+  }
+  else if (input$Category2=="Employment and Skill Development"&&input$Year7=="2014") {
+    Dynamic_Index(input$Year7, input$Indicator71, input$State_Category3)
+    }
+  else if (input$Category2=="Infrastructure"&&input$Year7=="2018") {
+    Dynamic_Index(input$Year7, input$Indicator8, input$State_Category3)
+  }
+  else if (input$Category2=="Infrstructure"&&input$Year7=="2014") {
+    Dynamic_Index(input$Year7, input$Indicator81, input$State_Category3)
+    }
+  else if (input$Category2=="Environment and Sustainability"&&input$Year7=="2018"){
+    Dynamic_Index(input$Year7, input$Indicator9, input$State_Category3)
+  }
+   else if (input$Category2=="Environment and Sustainability"&&input$Year7=="2014") {
+    Dynamic_Index(input$Year7, input$Indicator91, input$State_Category3)
+    }
+  })
+
+
+
+ renderPlot({
+   
+      p<- ggplot(my_data5(), aes(x = reorder(State, Score), y = Score, fill=Score)) + geom_bar(stat = "identity", width = .75,  show.legend = TRUE, position = position_dodge(),  fun.y = "mean")+ geom_col()+theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size=15))+ geom_abline(intercept = mean(my_data5()[,2]), slope = 0)+ geom_text(aes(label= Score), vjust= 4, color ="white")
+  print(p)
+   
+}) 
+
+```
+
+### Table: Dynamic Index
+
+```{r}
+
+
+renderDataTable({
+  
+    datatable(my_data5(), extensions = 'Buttons', options = list(
+    dom = 'Blfrtip',
+    buttons = c('csv', 'excel', 'pdf', 'print'),
+    lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All")),
+    options = list(pageLength = 25)
+    ))
+  
+})
+```
+
+
+Indicator-wise Data Across State
+=========================================
+
+
+Inputs {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+
+selectInput("Category30", label = "Category:",
+            choices = c("Education", "Economy", "Health", "Inclusive Development", "Law & Order", "Business Friendliness", "Employment and Skill Development", "Infrastructure", "Environment and Sustainability"), selected = "Education")
+
+conditionalPanel(condition = "input.Category30=='Education'",
+                  selectInput("Indicator311", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="01"], selected = NULL))
+
+
+conditionalPanel(condition = "input.Category30=='Economy'",
+                  selectInput("Indicator32", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="02"], selected = NULL))
+
+conditionalPanel( condition = "input.Category30=='Health'",
+                  selectInput("Indicator33", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="03"], selected = NULL))
+
+conditionalPanel( condition = "input.Category30=='Inclusive Development'",
+                  selectInput("Indicator34", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="04"], selected = NULL))
+
+conditionalPanel( condition = "input.Category30=='Law & Order'",
+                  selectInput("Indicator35", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="05"], selected = NULL))
+
+conditionalPanel( condition = "input.Category30=='Business Friendliness'",
+                  selectInput("Indicator36", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="06"], selected = NULL))
+
+conditionalPanel( condition = "input.Category30=='Employment and Skill Development'",
+                  selectInput("Indicator37", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="07"], selected = NULL))
+
+conditionalPanel( condition = "input.Category30=='Infrastructure'",
+                  selectInput("Indicator38", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="08"], selected = NULL))
+
+conditionalPanel( condition = "input.Category30=='Environment and Sustainability'",
+                  selectInput("Indicator39", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="09"], selected = NULL))
+
+checkboxGroupInput("State30", label = "State:",
+            choices = rownames(Additive_Aggregation_2018)[3:33], selected = "Delhi")
+```
+
+
+
+Outputs {.tabset}
+-----------------------------------------------------------------------
+
+
+
+### Indicator wise State Performance
+
+```{r}
+dataset<- reactive({
+  if (input$Category30=="Education") {
+    dataset <- States_Indi(input$Indicator311, input$State30)
+  }
+  else if (input$Category30=="Economy") {
+    dataset <- States_Indi(input$Indicator32, input$State30)
+  }
+  else if (input$Category30=="Health") {
+    dataset <- States_Indi(input$Indicator33, input$State30)
+  }
+  else if (input$Category30=="Inclusive Development") {
+    dataset <- States_Indi(input$Indicator34, input$State30)
+  }
+  else if (input$Category30=="Law & Order") {
+    dataset <- States_Indi(input$Indicator35, input$State30)
+  }
+  else if (input$Category30=="Business Friendliness") {
+    dataset <- States_Indi(input$Indicator36, input$State30)
+  }
+  else if (input$Category30=="Employment and Skill Development") {
+    dataset <- States_Indi(input$Indicator37, input$State30)
+  }
+  else if (input$Category30=="Infrastructure") {
+    dataset <- States_Indi(input$Indicator38, input$State30)
+  }
+  else if (input$Category30=="Environment and Sustainability") {
+    dataset <- States_Indi(input$Indicator39, input$State30)
+  }
+})
+
+dataset2<- reactive({
+  if (input$Category30=="Education") {
+    dataset2 <- States_Indi_table(input$Indicator311, input$State30)
+  }
+  else if (input$Category30=="Economy") {
+    dataset2 <- States_Indi_table(input$Indicator32, input$State30)
+  }
+  else if (input$Category30=="Health") {
+    dataset2 <- States_Indi_table(input$Indicator33, input$State30)
+  }
+  else if (input$Category30=="Inclusive Development") {
+    dataset2 <- States_Indi_table(input$Indicator34, input$State30)
+  }
+  else if (input$Category30=="Law & Order") {
+    dataset2 <- States_Indi_table(input$Indicator35, input$State30)
+  }
+  else if (input$Category30=="Business Friendliness") {
+    dataset2 <- States_Indi_table(input$Indicator36, input$State30)
+  }
+  else if (input$Category30=="Employment and Skill Development") {
+    dataset2 <- States_Indi_table(input$Indicator37, input$State30)
+  }
+  else if (input$Category30=="Infrastructure") {
+    dataset2 <- States_Indi_table(input$Indicator38, input$State30)
+  }
+  else if (input$Category30=="Environment and Sustainability") {
+    dataset2 <- States_Indi_table(input$Indicator39, input$State30)
+  }
+})
+
+renderPlot({
+  p <- ggplot(data = dataset(), aes(x= Year, y= Indicator, color= State, group= State))+ geom_line()+ geom_point()+ labs(x= "Year", y= "Indicator", title = "State Performance Tracker (Indicator-wise)")+ theme(text = element_text(size=15))+geom_text(aes(label= State), vjust= 4, color ="black", check_overlap = TRUE)
+  
+  print(p)
+})
+```
+
+
+### Table: Indicator wise State Performance
+```{r}
+
+
+renderDataTable({
+  
+    datatable(dataset2(), extensions = 'Buttons', options = list(
+    dom = 'Blfrtip',
+    buttons = c('csv', 'excel', 'pdf', 'print'),
+    lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All")),
+    options = list(pageLength = 25)
+    ))
+  
+})
+```
+
+
+Indicator-wise Data State Wise
+=========================================
+
+
+Inputs {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+
+selectInput("State40", label = "State:",
+            choices = rownames(Additive_Aggregation_2018)[3:33], selected = "Delhi")
+
+selectInput("Category40", label = "Category:",
+            choices = c("Education", "Economy", "Health", "Inclusive Development", "Law & Order", "Business Friendliness", "Employment and Skill Development", "Infrastructure", "Environment and Sustainability"), selected = "Education")
+
+conditionalPanel(condition = "input.Category40=='Education'",
+                  checkboxGroupInput("Indicator411", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="01"], selected =  NULL))
+
+
+conditionalPanel(condition = "input.Category40=='Economy'",
+                  checkboxGroupInput("Indicator42", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="02"], selected =  NULL))
+
+conditionalPanel( condition = "input.Category40=='Health'",
+                  checkboxGroupInput("Indicator43", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="03"], selected =  NULL))
+
+conditionalPanel( condition = "input.Category40=='Inclusive Development'",
+                  checkboxGroupInput("Indicator44", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="04"], selected = NULL))
+
+conditionalPanel( condition = "input.Category40=='Law & Order'",
+                  checkboxGroupInput("Indicator45", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="05"], selected = NULL))
+
+conditionalPanel( condition = "input.Category40=='Business Friendliness'",
+                  checkboxGroupInput("Indicator46", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="06"], selected = NULL))
+
+conditionalPanel( condition = "input.Category40=='Employment and Skill Development'",
+                  checkboxGroupInput("Indicator47", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="07"], selected = NULL))
+
+conditionalPanel( condition = "input.Category40=='Infrastructure'",
+                  checkboxGroupInput("Indicator48", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="08"], selected = NULL))
+
+conditionalPanel( condition = "input.Category40=='Environment and Sustainability'",
+                  checkboxGroupInput("Indicator49", label = "Indicator:",
+                              choices = Indicator_code$Indicator[Indicator_code$Category_code=="09"], selected = NULL))
+
+```
+
+
+
+Outputs {.tabset}
+-----------------------------------------------------------------------
+
+
+
+### Indicator wise State Performance
+
+```{r}
+dataset40<- reactive({
+  if (input$Category40=="Education") {
+    dataset <- State_Info(input$Indicator411, input$State40)
+  }
+  else if (input$Category40=="Economy") {
+    dataset <- State_Info(input$Indicator42, input$State40)
+  }
+  else if (input$Category40=="Health") {
+    dataset <- State_Info(input$Indicator43, input$State40)
+  }
+  else if (input$Category40=="Inclusive Development") {
+    dataset <- State_Info(input$Indicator44, input$State40)
+  }
+  else if (input$Category40=="Law & Order") {
+    dataset <- State_Info(input$Indicator45, input$State40)
+  }
+  else if (input$Category40=="Business Friendliness") {
+    dataset <- State_Info(input$Indicator46, input$State40)
+  }
+  else if (input$Category40=="Employment and Skill Development") {
+    dataset <- State_Info(input$Indicator47, input$State40)
+  }
+  else if (input$Category40=="Infrastructure") {
+    dataset <- State_Info(input$Indicator48, input$State40)
+  }
+  else if (input$Category40=="Environment and Sustainability") {
+    dataset <- State_Info(input$Indicator49, input$State40)
+  }
+})
+
+dataset42<- reactive({
+  if (input$Category40=="Education") {
+    dataset2 <- State_Info_table(input$Indicator411, input$State40)
+  }
+  else if (input$Category40=="Economy") {
+    dataset2 <- State_Info_table(input$Indicator42, input$State40)
+  }
+  else if (input$Category40=="Health") {
+    dataset2 <- State_Info_table(input$Indicator43, input$State40)
+  }
+  else if (input$Category40=="Inclusive Development") {
+    dataset2 <- State_Info_table(input$Indicator44, input$State40)
+  }
+  else if (input$Category40=="Law & Order") {
+    dataset2 <- State_Info_table(input$Indicator45, input$State40)
+  }
+  else if (input$Category40=="Business Friendliness") {
+    dataset2 <- State_Info_table(input$Indicator46, input$State40)
+  }
+  else if (input$Category40=="Employment and Skill Development") {
+    dataset2 <- State_Info_table(input$Indicator47, input$State40)
+  }
+  else if (input$Category40=="Infrastructure") {
+    dataset2 <- State_Info_table(input$Indicator48, input$State40)
+  }
+  else if (input$Category40=="Environment and Sustainability") {
+    dataset2 <- State_Info_table(input$Indicator49, input$State30)
+  }
+})
+
+renderPlot({
+  p <- ggplot(data = dataset40(), aes(x= Year, y= Data, color= Indicator, group= Indicator))+ geom_line()+ geom_point()+ labs(x= "Year", y= "Indicator", title = "Comparative State Performance Tracker (Indicator-wise)")+ theme(text = element_text(size=15))+geom_text(aes(label= Indicator), vjust= 4, color ="black", check_overlap = TRUE)
+  
+  print(p)
+})
+```
+
+
+### Table: Indicator wise State Performance
+```{r}
+
+
+renderDataTable({
+  
+    datatable(dataset42(), extensions = 'Buttons', options = list(
+    dom = 'Blfrtip',
+    buttons = c('csv', 'excel', 'pdf', 'print'),
+    lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All")),
+    options = list(pageLength = 25)
+    ))
+  
+})
+```
+
+
+Database 
+=====================================
+
+Column {.sidebar}
+-----------------------------------------
+
+```{r}
+
+selectInput("Year90", label = "Reference Year:",
+            choices = c("2014", "2018"), selected = "2018")
+
+selectInput("Category90", label = "Category:",
+            choices = c("Composite" ,"Education"="01", "Economy"="02", "Health"="03", "Inclusive Development"="04", "Law & Order"="05", "Business Friendliness"="06", "Employment and Skill Development"="07", "Infrastructure"="08", "Environment and Sustainability"="09"), selected = "Composite")
+
+```
+
+Column {.tabset} 
+-----------------------------------------
+
+### Database
+
+```{r}
+my_data99<- reactive({
+  
+  X<- List_DB[[input$Year90]]
+  rownames(X)<- X[,1]
+  X<- X[, -1]
+  
+  if (input$Category90!="Composite"){
+    X<- X[,substr(colnames(X),1,2)==input$Category90]
+    }
+  
+    for (i in 1:dim(X)[2]) {
+      colnames(X)[i]<- Indicator_code$Indicator[Indicator_code$Indicator_Code==substr(colnames(X)[i],1,5)]
+    }
+  
+  Y<- X[c(10:27,30:42),]
+  for (i in 1:dim(Y)[2]) {
+   Y[,i]<- round(as.numeric(unlist(Y[,i])),2)
+  }
+    return(Y)
+})
+
+renderDataTable({
+  datatable(my_data99(), extensions = 'Buttons', options = list(
+    dom = 'Blfrtip',
+    buttons = c('csv', 'excel', 'pdf', 'print'),
+    lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All")),
+    scrollX = TRUE, scrolly= TRUE
+    ))
+})
+
+```
+
+
+
