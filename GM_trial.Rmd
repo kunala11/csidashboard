@@ -721,6 +721,9 @@ Category_indi<- function(Year, Category2){
 
 Overall Governance Ranking 
 =========================================
+
+### State Governance Ranking
+
 Column {.sidebar}
 -----------------------------------------
 
@@ -889,6 +892,8 @@ renderDataTable({
 
 Category Ranking
 =========================================
+
+### Category Wise State Governance Ranking 
 
 Column {.sidebar}
 -----------------------------------------------------------------------
@@ -1070,6 +1075,9 @@ renderDataTable({
 
 Sub-category Ranking
 =========================================
+
+### Sub-Category wise State Governance Ranking
+
 Column {.sidebar}
 -----------------------------------------------------------------------
 
@@ -1258,6 +1266,8 @@ renderDataTable({
 State-Snapshot 
 ===================================== 
 
+### State Snapshot
+
 Column {.sidebar}
 -------------------------------------
 
@@ -1330,9 +1340,10 @@ renderDataTable({
 ```
 
 
-Dynamic Indexing 
+Dynamic Index
 ===================================== 
 ### Dynamic Governance Index
+
 Column {.sidebar}
 -----------------------------------------
 
@@ -1357,11 +1368,11 @@ conditionalPanel(condition = "input.Category2=='Education'&&input.Year7==2014",
                               choices = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="01"], selected = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="01"]))
 
 
-conditionalPanel( condition = "input.Category2=='Economy'&&input.Year7==2019",
+conditionalPanel( condition = "input.Category2=='Economy'&&input.Year7==2018",
                   checkboxGroupInput("Indicator22", label = "Indicator:",
                               choices = Indicator_code$Indicator[Indicator_code$Category_code=="02"], selected = Indicator_code$Indicator[Indicator_code$Category_code=="02"]))
 
-conditionalPanel( condition = "input.Category2=='Economy'&&input.Year7==2015",
+conditionalPanel( condition = "input.Category2=='Economy'&&input.Year7==2014",
                   checkboxGroupInput("Indicator21", label = "Indicator:",
                               choices = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="02"], selected = Indicator_code_14$Indicator[Indicator_code_14$Category_code=="02"]))
 
@@ -1527,7 +1538,7 @@ renderDataTable({
 
 Indicator-wise Data Across State
 =========================================
-
+### Indicator Level Comparision across State
 
 Inputs {.sidebar}
 -----------------------------------------------------------------------
@@ -1675,7 +1686,7 @@ renderDataTable({
 
 Indicator-wise Data State Wise
 =========================================
-
+### State's Performance across Governance Indicators
 
 Inputs {.sidebar}
 -----------------------------------------------------------------------
@@ -1824,6 +1835,8 @@ renderDataTable({
 
 Database 
 =====================================
+
+### Indicator Database
 
 Column {.sidebar}
 -----------------------------------------
